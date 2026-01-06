@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>SAMACO – Image Lookup Console</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: "Segoe UI", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+            background: #0b1633;
+            color: #0f172a;
+        }
+
+        .page {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Top navigation bar */
+        .topbar {
+            height: 64px;
+            background: linear-gradient(90deg, #10224e, #1f3c88);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 32px;
+            color: #e5e9f5;
+            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35);
+        }
+
+        .topbar-left {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .logo {
+            height: 42px;
+        }
+
+        .product-name {
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 0.18em;
+            opacity: 0.85;
+        }
+
+        .topbar-title {
+            font-size: 15px;
+            font-weight: 500;
+        }
+
+        .topbar-right {
+            font-size: 12px;
+            opacity: 0.9;
+        }
+
+        /* Main content area */
+        .content {
+            flex: 1;
+            padding: 26px 32px 32px;
+            background: radial-gradient(circle at top left, #1a2a55, #050816);
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+        }
+
+        .layout {
+            width: 100%;
+            max-width: 1120px;
+            display: grid;
+            grid-template-columns: 1.1fr 1.1fr;
+            gap: 22px;
+        }
+
+        .panel {
+            background: rgba(248, 250, 253, 0.98);
+            border-radius: 16px;
+            box-shadow: 0 20px 45px rgba(0, 0, 0, 0.40);
+            padding: 20px 22px 18px;
+        }
+
+        .panel-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            margin-bottom: 12px;
+        }
+
+        .panel-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #1f2937;
+        }
+
+        .panel-subtitle {
+            font-size: 11px;
+            color: #6b7280;
+        }
+
+        /* Search panel content */
+        .search-row {
+            display: flex;
+            align-items: center;
+            margin-top: 10px;
+            margin-bottom: 8px;
+        }
+
+        .search-row label {
+            font-size: 12px;
+            color: #4b5563;
+            margin-right: 10px;
+            min-width: 90px;
+        }
+
+        .search-input-container {
+            flex: 1;
+            display: flex;
+        }
+
+        .search-input-container input {
+            flex: 1;
+            padding: 10px 12px;
+            font-size: 14px;
+            border-radius: 10px 0 0 10px;
+            border: 1px solid #d1d5db;
+            outline: none;
+        }
+
+        .search-input-container input:focus {
+            border-color: #1f3c88;
+            box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.20);
+        }
+
+        .search-input-container button {
+            padding: 10px 16px;
+            font-size: 14px;
+            border-radius: 0 10px 10px 0;
+            border: none;
+            background: #1f3c88;
+            color: #ffffff;
+            cursor: pointer;
+            font-weight: 500;
+        }
+
+        .search-input-container button:hover {
+            background: #162b63;
+        }
+
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 4px;
+            margin-bottom: 12px;
+        }
+
+        .hint {
+            font-size: 11px;
+            color: #6b7280;
+        }
+
+        #message {
+            font-size: 12px;
+            min-height: 18px;
+        }
+
+        #message.error {
+            color: #b91c1c;
+        }
+
+        #message.ok {
+            color: #15803d;
+        }
+
+        .chips-title {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.12em;
+            color: #9ca3af;
+            margin-top: 6px;
+            margin-bottom: 4px;
+        }
+
+        .chips {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+
+        .chip {
+            padding: 4px 11px;
+            border-radius: 999px;
+            border: 1px solid #d1d5db;
+            background: #f3f4f6;
+            font-size: 11px;
+            color: #374151;
+            cursor: pointer;
+        }
+
+        .chip:hover {
+            border-color: #1f3c88;
+            color: #1f3c88;
+            background: #e5e7eb;
+        }
+
+        /* Image panel */
+        .preview-area {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+
+        .image-shell {
+            flex: 1;
+            border-radius: 14px;
+            border: 1px dashed #d1d5db;
+            background: #f9fafb;
+            padding: 14px;
+            text-align: center;
+
+            /* NEW: make it a wrapping gallery container */
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-items: flex-start;
+            gap: 12px;
+        }
+
+        .result-img {
+            max-width: 160px;
+            max-height: 220px;
+            border-radius: 12px;
+            border: 1px solid #e5e7eb;
+        }
+
+        .empty-message {
+            font-size: 12px;
+            color: #6b7280;
+            margin: auto;
+            width: 100%;
+        }
+
+        .meta-bar {
+            margin-top: 10px;
+            display: flex;
+            justify-content: space-between;
+            font-size: 11px;
+            color: #6b7280;
+        }
+
+        .meta-label {
+            text-transform: uppercase;
+            letter-spacing: 0.14em;
+            color: #9ca3af;
+        }
+
+        .meta-value {
+            font-weight: 500;
+            color: #374151;
+        }
+
+        @media (max-width: 900px) {
+            .layout {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 640px) {
+            .topbar {
+                padding: 0 16px;
+            }
+            .content {
+                padding: 18px 16px 24px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+<div class="page">
+    <!-- TOP BAR -->
+    <header class="topbar">
+        <div class="topbar-left">
+            <img src="SAMACOLOGO.png" alt="SAMACO Toys & Leisure" class="logo">
+            <div>
+                <div class="product-name">SAMACO TOYS & LEISURE</div>
+                <div class="topbar-title">Image Lookup Console</div>
+            </div>
+        </div>
+        <div class="topbar-right">
+            Internal use &middot; Item image verification
+        </div>
+    </header>
+
+    <!-- MAIN CONTENT -->
+    <main class="content">
+        <section class="layout">
+            <!-- SEARCH PANEL -->
+            <div class="panel">
+                <div class="panel-header">
+                    <div>
+                        <div class="panel-title">Search by item code</div>
+                        <div class="panel-subtitle">
+                            Enter an INT code to quickly view the corresponding product image.
+                        </div>
+                    </div>
+                </div>
+
+                <div class="search-row">
+                    <label for="searchBox">Item code</label>
+                    <div class="search-input-container">
+                        <input id="searchBox" type="text"
+                               placeholder="Example: INT4321">
+                        <button id="searchButton">Search</button>
+                    </div>
+                </div>
+
+                <div class="info-row">
+                    <div class="hint">
+                        Press Enter after typing the code. Codes are not case-sensitive.
+                    </div>
+                </div>
+
+                <div id="message"></div>
+
+                <div class="chips-title">Quick test codes</div>
+                <div class="chips" id="chipContainer">
+                    <button class="chip" data-code="INT4321">INT4321</button>
+                    <button class="chip" data-code="INT1230">INT1230</button>
+                    <button class="chip" data-code="INT1234">INT1234</button>
+                    <button class="chip" data-code="INT5789">INT5789</button>
+                    <button class="chip" data-code="INT5678">INT5678</button>
+                    <button class="chip" data-code="INT8765">INT8765</button>
+                </div>
+            </div>
+
+            <!-- IMAGE PREVIEW PANEL -->
+            <div class="panel">
+                <div class="panel-header">
+                    <div>
+                        <div class="panel-title">Image preview</div>
+                        <div class="panel-subtitle">
+                            Confirm item visuals before reporting or sharing with SACO.
+                        </div>
+                    </div>
+                </div>
+
+                <div class="preview-area">
+                    <div class="image-shell" id="imageShell">
+                        <div id="emptyState" class="empty-message">
+                            No image loaded. Search an item code on the left to see the image here.
+                        </div>
+                    </div>
+
+                    <div class="meta-bar">
+                        <div>
+                            <div class="meta-label">Current code</div>
+                            <div class="meta-value" id="currentCode">None</div>
+                        </div>
+                        <div>
+                            <div class="meta-label">Status</div>
+                            <div class="meta-value" id="statusText">Waiting for search</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+</div>
+
+<script>
+const images = {
+  "hdt1at05a":"HDT1AT05A.jpg","hdt1at05b":"HDT1AT05B.jpg","hdt1at05c":"HDT1AT05C.jpg","hdt1at05d":"HDT1AT05D.jpg","hdt1at05e":"HDT1AT05E.jpg","hdt1at05f":"HDT1AT05F.jpg",
+  "hdt3ct03a":"HDT3CT03A.jpg","hdt3ct03b":"HDT3CT03B.jpg","hdt3ct03c":"HDT3CT03C.jpg","hdt3ct03d":"HDT3CT03D.jpg","hdt3ct03e":"HDT3CT03E.jpg",
+  "hdt3ct05a":"HDT3CT05A.jpg","hdt3ct05b":"HDT3CT05B.jpg","hdt3ct05c":"HDT3CT05C.jpg","hdt3ct05d":"HDT3CT05D.jpg","hdt3ct05e":"HDT3CT05E.jpg","hdt3ct05f":"HDT3CT05F.jpg","hdt3ct05g":"HDT3CT05G.jpg",
+  "hdt3ct08a":"HDT3CT08A.jpg","hdt3ct08b":"HDT3CT08B.jpg","hdt3ct08c":"HDT3CT08C.jpg","hdt3ct08d":"HDT3CT08D.jpg","hdt3ct08e":"HDT3CT08E.jpg",
+  "hdt66836aa":"HDT668-36AA.jpg","hdt66836ab":"HDT668-36AB.jpg","hdt66836ac":"HDT668-36AC.jpg","hdt66836ad":"HDT668-36AD.jpg","hdt66836ae":"HDT668-36AE.jpg",
+  "hdt66840a":"HDT668-40A.jpg","hdt66840b":"HDT668-40B.jpg","hdt66840c":"HDT668-40C.jpg","hdt66840d":"HDT668-40D.jpg","hdt66840e":"HDT668-40E.jpg",
+  "hdt911713a":"HDT911-713A.jpg","hdt911713b":"HDT911-713B.jpg","hdt911713c":"HDT911-713C.jpg",
+  "hdt922168a":"HDT922-168A.jpg","hdt922168b":"HDT922-168B.jpg","hdt922168c":"HDT922-168C.jpg","hdt922168d":"HDT922-168D.jpg","hdt922168e":"HDT922-168E.jpg",
+  "hdt922169a":"HDT922-169A.jpg","hdt922169b":"HDT922-169B.jpg","hdt922169c":"HDT922-169C.jpg","hdt922169d":"HDT922-169D.jpg","hdt922169e":"HDT922-169E.jpg",
+  "hdt922211a":"HDT922-211A.jpg","hdt922211b":"HDT922-211B.jpg","hdt922211c":"HDT922-211C.jpg","hdt922211d":"HDT922-211D.jpg","hdt922211e":"HDT922-211E.jpg",
+  "hdt9992227a":"HDT999-2227A.jpg","hdt9992227b":"HDT999-2227B.jpg","hdt9992227c":"HDT999-2227C.jpg","hdt9992227d":"HDT999-2227D.jpg",
+  "hdtg781aa":"HDTG781AA.jpg","hdtg781ab":"HDTG781AB.jpg","hdtg781ac":"HDTG781AC.jpg","hdtg781ae":"HDTG781AE.jpg",
+  "hdtydf909ra":"HDTYDF909RA.jpg","hdtydf909rb":"HDTYDF909RB.jpg","hdtydf909rc":"HDTYDF909RC.jpg","hdtydf909rd":"HDTYDF909RD.jpg","hdtydf909re":"HDTYDF909RE.jpg",
+  "rfna200a":"RFNA200A.jpg","rfna200b":"RFNA200B.jpg","rfna200c":"RFNA200C.jpg","rfna200d":"RFNA200D.jpg","rfna200e":"RFNA200E.jpg",
+  "rfns307a":"RFNS307A.jpg","rfns307b":"RFNS307B.jpg","rfns307c":"RFNS307C.jpg","rfns307d":"RFNS307D.jpg","rfns307e":"RFNS307E.jpg","rfns307f":"RFNS307F.jpg",
+  "rfnje1006a":"RFNJE1006A.jpg","rfnje1006b":"RFNJE1006B.jpg","rfnje1006c":"RFNJE1006C.jpg","rfnje1006d":"RFNJE1006D.jpg","rfnje1006e":"RFNJE1006E.jpg","rfnje1006f":"RFNJE1006F.jpg",
+  "rfnhe0613":"RFNHE0613.jpg",
+  "rfntr2501a":"RFNTR2501A.jpg","rfntr2501b":"RFNTR2501B.jpg","rfntr2501c":"RFNTR2501C.jpg","rfntr2501d":"RFNTR2501D.jpg","rfntr2501e":"RFNTR2501E.jpg","rfntr2501f":"RFNTR2501F.jpg",
+  "trugt20176ba":"TRUGT20176BA.jpg","trugt20176bab":"TRUGT20176BAB.jpg","trugt20176bac":"TRUGT20176BAC.jpg","trugt20176bad":"TRUGT20176BAD.jpg","trugt20176bae":"TRUGT20176BAE.jpg",
+  "trugt20176ma":"TRUGT20176MA.jpg","trugt20176mab":"TRUGT20176MAB.jpg","trugt20176mac":"TRUGT20176MAC.jpg"
+};
+
+const searchBox = document.getElementById("searchBox");
+const searchButton = document.getElementById("searchButton");
+const chipContainer = document.getElementById("chipContainer");
+const emptyState = document.getElementById("emptyState");
+const message = document.getElementById("message");
+const currentCode = document.getElementById("currentCode");
+const statusText = document.getElementById("statusText");
+const imageShell = document.getElementById("imageShell");
+
+function normalize(v){
+  return v.toLowerCase().replace(/\.(jpg|jpeg|png)$/g,"").replace(/-/g,"");
+}
+
+function doSearch(fromChip){
+  const raw = fromChip || searchBox.value;
+  const base = normalize(raw).replace(/[a-z]$/,"");
+
+  imageShell.innerHTML = "";
+  message.textContent = "";
+  currentCode.textContent = raw.toUpperCase();
+  statusText.textContent = "Searching";
+
+  if(!base){
+    message.textContent = "Please enter an item code.";
+    message.className = "error";
+    imageShell.appendChild(emptyState);
+    return;
+  }
+
+  const matches = Object.keys(images).filter(k => k.startsWith(base));
+
+  if(!matches.length){
+    message.textContent = "No image found for " + raw.toUpperCase();
+    message.className = "error";
+    imageShell.appendChild(emptyState);
+    statusText.textContent = "Image missing";
+    return;
+  }
+
+  matches.forEach(k => {
+    const img = document.createElement("img");
+    img.src = images[k];
+    img.alt = k.toUpperCase();
+    img.className = "result-img";
+    imageShell.appendChild(img);
+  });
+
+  message.textContent = matches.length + " image(s) found";
+  message.className = "ok";
+  statusText.textContent = "Images found";
+}
+
+searchButton.onclick = () => doSearch();
+searchBox.onkeyup = e => e.key === "Enter" && doSearch();
+chipContainer.onclick = e => {
+  if(e.target.classList.contains("chip")){
+    searchBox.value = e.target.dataset.code;
+    doSearch(e.target.dataset.code);
+  }
+};
+</script>
+</body>
+</html>
